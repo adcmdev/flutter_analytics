@@ -1,4 +1,4 @@
-import 'package:fanalytics/models/track_event.dart';
+import 'package:fanalytics/models/event_type.dart';
 
 class Integration {
   const Integration();
@@ -9,13 +9,14 @@ class Integration {
   }) async {}
 
   Future<void> identify({
-    required String userID,
+    required String id,
     required Map<String, dynamic> data,
-    bool isTheFirstTime = false,
   }) async {}
 
   Future<void> track({
-    required TrackEvent event,
+    required String eventName,
+    EventType eventType = EventType.track,
+    Map<String, dynamic> properties = const {},
   }) async {}
 
   Future<void> reset() async {}

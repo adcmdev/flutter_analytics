@@ -1,5 +1,5 @@
+import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration.dart';
-import 'package:fanalytics/models/track_event.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class FirebaseIntegration extends Integration {
@@ -17,12 +17,12 @@ class FirebaseIntegration extends Integration {
 
   @override
   Future<void> identify({
-    required String userID,
+    required String id,
     required Map<String, dynamic> data,
     bool isTheFirstTime = false,
   }) async {
     await firebaseAnalytics.setUserId(
-      id: userID,
+      id: id,
       callOptions: AnalyticsCallOptions(global: true),
     );
 
@@ -32,40 +32,21 @@ class FirebaseIntegration extends Integration {
   }
 
   @override
-  Future<void> track({required TrackEvent event}) async {
-    final eventProperties = <String, Object>{};
+  Future<void> track({
+    required String eventName,
+    EventType eventType = EventType.track,
+    Map<String, dynamic> properties = const {},
+  }) async {
+    final eventProperties = <String, String>{};
 
-    for (final key in event.properties.keys) {
-      eventProperties[key] = event.properties[key].toString();
+    for (final key in properties.keys) {
+      eventProperties[key] = properties[key].toString();
     }
 
-    switch (event.eventName) {
-      case 'Order Completed':
-        await firebaseAnalytics.logPurchase(
-          parameters: eventProperties,
-        );
-        break;
-      case 'add_to_cart':
-        await firebaseAnalytics.logAddToCart(
-          parameters: eventProperties,
-        );
-        break;
-      case 'product_removed':
-        await firebaseAnalytics.logRemoveFromCart(
-          parameters: eventProperties,
-        );
-        break;
-      case 'select_favorite_product':
-        await firebaseAnalytics.logAddToWishlist(
-          parameters: eventProperties,
-        );
-        break;
-      default:
-        await firebaseAnalytics.logEvent(
-          name: event.eventName,
-          parameters: eventProperties,
-        );
-    }
+    await firebaseAnalytics.logEvent(
+      name: eventName,
+      parameters: eventProperties,
+    );
   }
 
   @override

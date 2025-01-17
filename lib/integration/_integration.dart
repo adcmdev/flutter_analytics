@@ -1,7 +1,7 @@
 import 'package:fanalytics/integration/firebase.dart';
+import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration.dart';
 import 'package:fanalytics/models/integration_init.dart';
-import 'package:fanalytics/models/track_event.dart';
 
 enum IntegrationsEnum {
   firebase(implementation: FirebaseIntegration());
@@ -17,7 +17,8 @@ class IntegrationFactory {
   static List<IntegrationsEnum> integrations = [];
 
   static Future<void> init(
-      Map<String, FanalyticsIntegrationModel> configMap) async {
+    Map<String, FanalyticsIntegrationModel> configMap,
+  ) async {
     final awaitables = <Future>[];
 
     for (final integration in IntegrationsEnum.values) {
@@ -46,18 +47,16 @@ class IntegrationFactory {
   }
 
   static Future<void> identify({
-    required String userID,
+    required String id,
     required Map<String, dynamic> identifyData,
-    bool isTheFirstTime = false,
   }) async {
     final awaitables = <Future>[];
     for (final integration in integrations) {
       awaitables.add(
         safeExecute(
           () => integration.implementation.identify(
-            userID: userID,
+            id: id,
             data: identifyData,
-            isTheFirstTime: isTheFirstTime,
           ),
           integration,
         ),
@@ -68,13 +67,19 @@ class IntegrationFactory {
   }
 
   static Future<void> track({
-    required TrackEvent event,
+    required String eventName,
+    EventType eventType = EventType.track,
+    Map<String, dynamic> properties = const {},
   }) async {
     final awaitables = <Future>[];
     for (final integration in integrations) {
       awaitables.add(
         safeExecute(
-          () => integration.implementation.track(event: event),
+          () => integration.implementation.track(
+            eventName: eventName,
+            eventType: eventType,
+            properties: properties,
+          ),
           integration,
         ),
       );
@@ -87,8 +92,12 @@ class IntegrationFactory {
     final awaitables = <Future>[];
 
     for (final integration in integrations) {
-      awaitables
-          .add(safeExecute(integration.implementation.reset, integration));
+      awaitables.add(
+        safeExecute(
+          integration.implementation.reset,
+          integration,
+        ),
+      );
     }
 
     await Future.wait(awaitables);
