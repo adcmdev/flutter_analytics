@@ -31,9 +31,11 @@ class Fanalytics {
   }) async {
     if (id.isEmpty) return;
 
+    final device = (await deviceData);
+
     data = {
       'ip': await ip,
-      'device': await deviceData,
+      ...flattenMap(device, prefix: 'device'),
       ...data,
     };
 
@@ -84,41 +86,103 @@ class Fanalytics {
   Future<Map<String, dynamic>> get deviceData async {
     if (_deviceData.isNotEmpty) return _deviceData;
 
-    var result = <String, dynamic>{};
-
-    switch (Platform.operatingSystem) {
-      case 'android':
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        result = androidInfo.data;
-        break;
-      case 'ios':
-        final iosInfo = await DeviceInfoPlugin().iosInfo;
-        result = iosInfo.data;
-        break;
-      case 'macos':
-        final macOsInfo = await DeviceInfoPlugin().macOsInfo;
-        result = macOsInfo.data;
-        break;
-      case 'linux':
-        final linuxInfo = await DeviceInfoPlugin().linuxInfo;
-        result = linuxInfo.data;
-        break;
-      case 'windows':
-        final windowsInfo = await DeviceInfoPlugin().windowsInfo;
-        result = windowsInfo.data;
-        break;
-    }
+    final deviceInfoPlugin = DeviceInfoPlugin();
+    Map<String, dynamic> result = {};
 
     if (kIsWeb) {
-      final webInfo = await DeviceInfoPlugin().webBrowserInfo;
-      result = webInfo.data;
+      // WEB
+      final webInfo = await deviceInfoPlugin.webBrowserInfo;
+      result = {
+        'browserName': webInfo.browserName.toString(),
+        'appVersion': webInfo.appVersion,
+        'platform': webInfo.platform,
+      };
+    } else {
+      switch (Platform.operatingSystem) {
+        case 'android':
+          final androidInfo = await deviceInfoPlugin.androidInfo;
+          result = {
+            'brand': androidInfo.brand,
+            'device': androidInfo.device,
+            'model': androidInfo.model,
+            'isPhysicalDevice': androidInfo.isPhysicalDevice,
+            'sdkInt': androidInfo.version.sdkInt,
+            'release': androidInfo.version.release,
+          };
+          break;
+
+        case 'ios':
+          final iosInfo = await deviceInfoPlugin.iosInfo;
+          result = {
+            'name': iosInfo.name,
+            'model': iosInfo.model,
+            'systemName': iosInfo.systemName,
+            'systemVersion': iosInfo.systemVersion,
+            'isPhysicalDevice': iosInfo.isPhysicalDevice,
+            'identifierForVendor': iosInfo.identifierForVendor,
+          };
+          break;
+
+        case 'macos':
+          final macOsInfo = await deviceInfoPlugin.macOsInfo;
+          result = {
+            'computerName': macOsInfo.computerName,
+            'hostName': macOsInfo.hostName,
+            'arch': macOsInfo.arch,
+            'model': macOsInfo.model,
+          };
+          break;
+
+        case 'linux':
+          final linuxInfo = await deviceInfoPlugin.linuxInfo;
+          result = {
+            'name': linuxInfo.name,
+            'version': linuxInfo.version,
+            'id': linuxInfo.id,
+            'idLike': linuxInfo.idLike,
+            'variant': linuxInfo.variant,
+          };
+          break;
+
+        case 'windows':
+          final windowsInfo = await deviceInfoPlugin.windowsInfo;
+          result = {
+            'computerName': windowsInfo.computerName,
+            'numberOfCores': windowsInfo.numberOfCores,
+            'systemMemoryInMegabytes': windowsInfo.systemMemoryInMegabytes,
+          };
+          break;
+
+        default:
+          result = {'error': 'OS not supported or not detected'};
+          break;
+      }
     }
 
-    result = result.map((key, value) {
-      return MapEntry(key.toSnakeCase, value);
-    });
-
     _deviceData = result;
+    return _deviceData;
+  }
+
+  Map<String, dynamic> flattenMap(
+    Map<String, dynamic> original, {
+    String prefix = '',
+  }) {
+    final Map<String, dynamic> result = {};
+
+    original.forEach((key, value) {
+      final newKey = prefix.isEmpty ? key : '${prefix}_$key';
+
+      if (value is Map) {
+        result.addAll(
+          flattenMap(
+            Map<String, dynamic>.from(value),
+            prefix: newKey,
+          ),
+        );
+      } else {
+        result[newKey] = value;
+      }
+    });
 
     return result;
   }

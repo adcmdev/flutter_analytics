@@ -40,7 +40,9 @@ class FirebaseIntegration extends Integration {
     final eventProperties = <String, String>{};
 
     for (final key in properties.keys) {
-      eventProperties[key] = properties[key].toString();
+      final value = properties[key];
+
+      eventProperties[key] = value.toString();
     }
 
     await firebaseAnalytics.logEvent(
