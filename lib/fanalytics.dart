@@ -41,7 +41,7 @@ class Fanalytics {
 
     data = {
       'ip': await ip,
-      ...device,
+      'device': device,
       ...data,
     };
 
