@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:android_id/android_id.dart';
 import 'package:dart_ipify/dart_ipify.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fanalytics/integration/_integration.dart';
@@ -103,7 +104,7 @@ class Fanalytics {
         final androidInfo = await deviceInfoPlugin.androidInfo;
 
         result = {
-          'id': androidInfo.id,
+          'id': const AndroidId().getId(),
           'brand': androidInfo.brand,
           'model': androidInfo.model,
           'os_version': androidInfo.version.sdkInt.toString(),
