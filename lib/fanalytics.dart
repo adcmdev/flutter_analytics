@@ -5,7 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fanalytics/integration/_integration.dart';
 import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration_init.dart';
-import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// A class for managing mobile shared events.
 class Fanalytics {
@@ -83,80 +83,58 @@ class Fanalytics {
     return ipv4;
   }
 
-  Future<Map<String, dynamic>> get deviceData async {
+  static Future<Map<String, dynamic>> get deviceData async {
     if (_deviceData.isNotEmpty) return _deviceData;
 
     final deviceInfoPlugin = DeviceInfoPlugin();
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    final appVersion = packageInfo.version;
     Map<String, dynamic> result = {};
 
-    if (kIsWeb) {
-      // WEB
-      final webInfo = await deviceInfoPlugin.webBrowserInfo;
-      result = {
-        'browserName': webInfo.browserName.toString(),
-        'appVersion': webInfo.appVersion,
-        'platform': webInfo.platform,
-      };
-    } else {
-      switch (Platform.operatingSystem) {
-        case 'android':
-          final androidInfo = await deviceInfoPlugin.androidInfo;
-          result = {
-            'brand': androidInfo.brand,
+    switch (Platform.operatingSystem) {
+      case 'android':
+        final androidInfo = await deviceInfoPlugin.androidInfo;
+
+        result = {
+          'id': androidInfo.id,
+          'brand': androidInfo.brand,
+          'model': androidInfo.model,
+          'os_version': androidInfo.version.sdkInt,
+          'app_version': appVersion,
+          'platform': 'android',
+          'data': {
             'device': androidInfo.device,
-            'model': androidInfo.model,
-            'isPhysicalDevice': androidInfo.isPhysicalDevice,
-            'sdkInt': androidInfo.version.sdkInt,
-            'release': androidInfo.version.release,
-          };
-          break;
+            'sdk_int': androidInfo.version.sdkInt,
+            'is_physical_device': androidInfo.isPhysicalDevice,
+            ...packageInfo.data,
+          },
+        };
+        break;
 
-        case 'ios':
-          final iosInfo = await deviceInfoPlugin.iosInfo;
-          result = {
-            'name': iosInfo.name,
-            'model': iosInfo.model,
-            'systemName': iosInfo.systemName,
-            'systemVersion': iosInfo.systemVersion,
-            'isPhysicalDevice': iosInfo.isPhysicalDevice,
-            'identifierForVendor': iosInfo.identifierForVendor,
-          };
-          break;
+      case 'ios':
+        final iosInfo = await deviceInfoPlugin.iosInfo;
 
-        case 'macos':
-          final macOsInfo = await deviceInfoPlugin.macOsInfo;
-          result = {
-            'computerName': macOsInfo.computerName,
-            'hostName': macOsInfo.hostName,
-            'arch': macOsInfo.arch,
-            'model': macOsInfo.model,
-          };
-          break;
+        result = {
+          'id': iosInfo.identifierForVendor,
+          'brand': iosInfo.name,
+          'model': iosInfo.model,
+          'os_version': iosInfo.systemVersion,
+          'app_version': appVersion,
+          'platform': 'ios',
+          'data': {
+            'system_name': iosInfo.systemName,
+            'is_physical_device': iosInfo.isPhysicalDevice,
+            ...packageInfo.data,
+          },
+        };
+        break;
+      default:
+        result = {
+          'error': 'OS not supported or not detected',
+        };
 
-        case 'linux':
-          final linuxInfo = await deviceInfoPlugin.linuxInfo;
-          result = {
-            'name': linuxInfo.name,
-            'version': linuxInfo.version,
-            'id': linuxInfo.id,
-            'idLike': linuxInfo.idLike,
-            'variant': linuxInfo.variant,
-          };
-          break;
-
-        case 'windows':
-          final windowsInfo = await deviceInfoPlugin.windowsInfo;
-          result = {
-            'computerName': windowsInfo.computerName,
-            'numberOfCores': windowsInfo.numberOfCores,
-            'systemMemoryInMegabytes': windowsInfo.systemMemoryInMegabytes,
-          };
-          break;
-
-        default:
-          result = {'error': 'OS not supported or not detected'};
-          break;
-      }
+        break;
     }
 
     _deviceData = result;
