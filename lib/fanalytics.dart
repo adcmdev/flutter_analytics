@@ -31,11 +31,17 @@ class Fanalytics {
   }) async {
     if (id.isEmpty) return;
 
-    final device = (await deviceData);
+    final device = <String, dynamic>{};
+
+    for (final entry in (await deviceData).entries) {
+      if (entry.key != 'data') {
+        device[entry.key] = entry.value;
+      }
+    }
 
     data = {
       'ip': await ip,
-      ...flattenMap(device, prefix: 'device'),
+      ...device,
       ...data,
     };
 
