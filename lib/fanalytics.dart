@@ -104,7 +104,7 @@ class Fanalytics {
         final androidInfo = await deviceInfoPlugin.androidInfo;
 
         result = {
-          'id': const AndroidId().getId(),
+          'id': await const AndroidId().getId(),
           'brand': androidInfo.brand,
           'model': androidInfo.model,
           'os_version': androidInfo.version.sdkInt.toString(),
