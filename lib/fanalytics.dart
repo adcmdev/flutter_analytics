@@ -100,7 +100,7 @@ class Fanalytics {
           'id': androidInfo.id,
           'brand': androidInfo.brand,
           'model': androidInfo.model,
-          'os_version': androidInfo.version.sdkInt,
+          'os_version': androidInfo.version.sdkInt.toString(),
           'app_version': appVersion,
           'platform': 'android',
           'data': {
