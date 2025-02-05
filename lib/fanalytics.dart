@@ -99,6 +99,18 @@ class Fanalytics {
     final appVersion = packageInfo.version;
     Map<String, dynamic> result = {};
 
+    final packageInfoData = <String, dynamic>{};
+
+    for (final entry in packageInfo.data.entries) {
+      final value = entry.value;
+
+      if (value is DateTime) {
+        packageInfoData[entry.key] = value.toIso8601String();
+      }
+
+      packageInfoData[entry.key] = value.toString();
+    }
+
     switch (Platform.operatingSystem) {
       case 'android':
         final androidInfo = await deviceInfoPlugin.androidInfo;
@@ -114,7 +126,7 @@ class Fanalytics {
             'device': androidInfo.device,
             'sdk_int': androidInfo.version.sdkInt,
             'is_physical_device': androidInfo.isPhysicalDevice,
-            ...packageInfo.data,
+            ...packageInfoData,
           },
         };
         break;
@@ -132,7 +144,7 @@ class Fanalytics {
           'data': {
             'system_name': iosInfo.systemName,
             'is_physical_device': iosInfo.isPhysicalDevice,
-            ...packageInfo.data,
+            ...packageInfoData,
           },
         };
         break;
