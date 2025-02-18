@@ -4,6 +4,7 @@ import 'package:android_id/android_id.dart';
 import 'package:dart_ipify/dart_ipify.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fanalytics/integration/_integration.dart';
+import 'package:fanalytics/models/device.dart';
 import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration_init.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -14,7 +15,7 @@ class Fanalytics {
   const Fanalytics();
 
   static Map<String, dynamic> _identifyData = {};
-  static Map<String, dynamic> _deviceData = {};
+  static Device? _deviceData;
 
   Future<void> init({
     required Map<String, FanalyticsIntegrationModel> configMap,
@@ -31,18 +32,16 @@ class Fanalytics {
     required Map<String, dynamic> data,
   }) async {
     if (id.isEmpty) return;
-
-    final device = <String, dynamic>{};
-
-    for (final entry in (await deviceData).entries) {
-      if (entry.key != 'data') {
-        device[entry.key] = entry.value;
-      }
-    }
+    final device = await deviceData;
 
     data = {
       'ip': await ip,
-      'device': device,
+      'device_ip': device.ip,
+      'device_brand': device.brand,
+      'device_model': device.model,
+      'device_os_version': device.osVersion,
+      'device_app_version': device.appVersion,
+      'device_platform': device.platform,
       ...data,
     };
 
@@ -84,14 +83,14 @@ class Fanalytics {
     }
   }
 
-  Future<String> get ip async {
+  static Future<String> get ip async {
     final ipv4 = await Ipify.ipv4();
 
     return ipv4;
   }
 
-  static Future<Map<String, dynamic>> get deviceData async {
-    if (_deviceData.isNotEmpty) return _deviceData;
+  static Future<Device> get deviceData async {
+    if (_deviceData != null) return _deviceData!;
 
     final deviceInfoPlugin = DeviceInfoPlugin();
     final packageInfo = await PackageInfo.fromPlatform();
@@ -111,12 +110,15 @@ class Fanalytics {
       packageInfoData[entry.key] = value.toString();
     }
 
+    final deviceIP = await ip;
+
     switch (Platform.operatingSystem) {
       case 'android':
         final androidInfo = await deviceInfoPlugin.androidInfo;
 
         result = {
           'id': await const AndroidId().getId(),
+          'ip': deviceIP,
           'brand': androidInfo.brand,
           'model': androidInfo.model,
           'os_version': androidInfo.version.sdkInt.toString(),
@@ -136,6 +138,7 @@ class Fanalytics {
 
         result = {
           'id': iosInfo.identifierForVendor,
+          'ip': deviceIP,
           'brand': iosInfo.name,
           'model': iosInfo.model,
           'os_version': iosInfo.systemVersion,
@@ -156,8 +159,10 @@ class Fanalytics {
         break;
     }
 
-    _deviceData = result;
-    return _deviceData;
+    final device = Device.fromMap(result);
+
+    _deviceData = device;
+    return device;
   }
 
   Map<String, dynamic> flattenMap(

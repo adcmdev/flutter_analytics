@@ -1,6 +1,6 @@
 name: fanalytics
 description: "Fanalytics is a Flutter plugin for tracking events and user data."
-version: 0.0.1
+version: 0.0.2
 
 environment:
   sdk: ^3.5.4
