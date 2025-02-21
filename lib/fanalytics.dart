@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:android_id/android_id.dart';
@@ -84,9 +85,34 @@ class Fanalytics {
   }
 
   static Future<String> get ip async {
-    final ipv4 = await Ipify.ipv4();
+    try {
+      final ipv4 = await Ipify.ipv4();
 
-    return ipv4;
+      return ipv4;
+    } catch (_) {
+      return (await _getPublicIP()) ?? '';
+    }
+  }
+
+  static Future<String?> _getPublicIP() async {
+    try {
+      final url = Uri.parse('https://api.ipify.org?format=json');
+      final response = await HttpClient().getUrl(url).then(
+        (req) {
+          return req.close();
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final json = await response.transform(utf8.decoder).join();
+
+        return jsonDecode(json)['ip'];
+      }
+    } catch (e) {
+      return null;
+    }
+
+    return null;
   }
 
   static Future<Device> get deviceData async {
