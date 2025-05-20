@@ -177,6 +177,23 @@ class Fanalytics {
           },
         };
         break;
+      case 'windows':
+        final windowsInfo = await deviceInfoPlugin.windowsInfo;
+
+        result = {
+          'id': windowsInfo.deviceId,
+          'ip': deviceIP,
+          'brand': windowsInfo.computerName,
+          'model': windowsInfo.displayVersion,
+          'os_version': windowsInfo.buildNumber,
+          'app_version': appVersion,
+          'platform': 'windows',
+          'data': {
+            'digital_product_id': windowsInfo.digitalProductId,
+            ...packageInfoData,
+          },
+        };
+        break;
       default:
         result = {
           'error': 'OS not supported or not detected',

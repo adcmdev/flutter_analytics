@@ -21,14 +21,14 @@ class Device {
 
   factory Device.fromMap(Map<String, dynamic> map) {
     return Device(
-      id: map['id'],
-      ip: map['ip'],
-      brand: map['brand'],
-      model: map['model'],
-      osVersion: map['os_version'],
-      appVersion: map['app_version'],
-      platform: map['platform'],
-      data: map['data'],
+      id: map['id'] ?? '',
+      ip: map['ip'] ?? '',
+      brand: map['brand'] ?? '',
+      model: map['model'] ?? '',
+      osVersion: map['os_version'] ?? '',
+      appVersion: map['app_version'] ?? '',
+      platform: map['platform'] ?? '',
+      data: map['data'] ?? {},
     );
   }
 
