@@ -185,11 +185,10 @@ class Fanalytics {
           'ip': deviceIP,
           'brand': windowsInfo.computerName,
           'model': windowsInfo.displayVersion,
-          'os_version': windowsInfo.buildNumber,
+          'os_version': windowsInfo.buildNumber.toString(),
           'app_version': appVersion,
           'platform': 'windows',
           'data': {
-            'digital_product_id': windowsInfo.digitalProductId,
             ...packageInfoData,
           },
         };
