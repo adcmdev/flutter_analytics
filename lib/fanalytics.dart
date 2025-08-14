@@ -8,6 +8,7 @@ import 'package:fanalytics/integration/_integration.dart';
 import 'package:fanalytics/models/device.dart';
 import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration_init.dart';
+import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// A class for managing mobile shared events.
@@ -79,6 +80,20 @@ class Fanalytics {
     try {
       await IntegrationFactory.reset();
       _identifyData = {};
+    } catch (e) {
+      return;
+    }
+  }
+
+  Future<void> screen({
+    required RouteSettings? toRoute,
+    required RouteSettings? previousRoute,
+  }) async {
+    try {
+      await IntegrationFactory.screen(
+        toRoute: toRoute,
+        previousRoute: previousRoute,
+      );
     } catch (e) {
       return;
     }

@@ -1,4 +1,5 @@
 import 'package:fanalytics/models/event_type.dart';
+import 'package:flutter/widgets.dart';
 
 class Integration {
   const Integration();
@@ -20,4 +21,9 @@ class Integration {
   }) async {}
 
   Future<void> reset() async {}
+
+  Future<void> screen({
+    required RouteSettings? toRoute,
+    required RouteSettings? previousRoute,
+  }) async {}
 }

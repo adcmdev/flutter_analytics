@@ -1,10 +1,15 @@
 import 'package:fanalytics/integration/firebase.dart';
+import 'package:fanalytics/integration/mixpanel.dart';
 import 'package:fanalytics/models/event_type.dart';
 import 'package:fanalytics/models/integration.dart';
 import 'package:fanalytics/models/integration_init.dart';
+import 'package:flutter/widgets.dart';
+
+export 'package:fanalytics/models/integration.dart';
 
 enum IntegrationsEnum {
-  firebase(implementation: FirebaseIntegration());
+  firebase(implementation: FirebaseIntegration()),
+  mixpanel(implementation: MixpanelIntegration());
 
   const IntegrationsEnum({
     required this.implementation,
@@ -95,6 +100,27 @@ class IntegrationFactory {
       awaitables.add(
         safeExecute(
           integration.implementation.reset,
+          integration,
+        ),
+      );
+    }
+
+    await Future.wait(awaitables);
+  }
+
+  static Future<void> screen({
+    required RouteSettings? toRoute,
+    required RouteSettings? previousRoute,
+  }) async {
+    final awaitables = <Future>[];
+
+    for (final integration in integrations) {
+      awaitables.add(
+        safeExecute(
+          () => integration.implementation.screen(
+            toRoute: toRoute,
+            previousRoute: previousRoute,
+          ),
           integration,
         ),
       );
